@@ -6,56 +6,54 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-export class Example implements INodeType {
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+import { ProxyAgent, setGlobalDispatcher } from 'undici';
+import 'global-agent/bootstrap';
+
+export class SetProxy implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Example',
-		name: 'example',
+		displayName: 'Set Proxy',
+		name: 'setProxy',
 		icon: { light: 'file:example.svg', dark: 'file:example.dark.svg' },
 		group: ['input'],
 		version: 1,
-		description: 'Basic Example Node',
+		description: 'Sets a proxy for HTTP requests',
 		defaults: {
-			name: 'Example',
+			name: 'Set Proxy',
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,
 		properties: [
-			// Node properties which the user gets displayed and
-			// can change on the node.
 			{
-				displayName: 'My String',
-				name: 'myString',
+				displayName: 'Proxy URL',
+				name: 'proxyUrl',
 				type: 'string',
 				default: '',
-				placeholder: 'Placeholder value',
-				description: 'The description text',
+				placeholder: 'http://proxyserver:port',
+				description: 'The URL of the proxy server',
 			},
 		],
 	};
 
-	// The function below is responsible for actually doing whatever this node
-	// is supposed to do. In this case, we're just appending the `myString` property
-	// with whatever the user has entered.
-	// You can make async calls and use `await`.
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 
 		let item: INodeExecutionData;
-		let myString: string;
+		let proxyUrl: string;
 
-		// Iterates over all input items and add the key "myString" with the
-		// value the parameter "myString" resolves to.
-		// (This could be a different value for each item in case it contains an expression)
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			try {
-				myString = this.getNodeParameter('myString', itemIndex, '') as string;
+				proxyUrl = this.getNodeParameter('proxyUrl', itemIndex, '') as string;
 				item = items[itemIndex];
 
-				item.json.myString = myString;
+				global.GLOBAL_AGENT.HTTP_PROXY = proxyUrl;
+				const proxyAgent = new ProxyAgent(proxyUrl);
+				setGlobalDispatcher(proxyAgent);
+
+				item.json.proxyUrl = proxyUrl;
 			} catch (error) {
-				// This node should never fail but we want to showcase how
-				// to handle errors.
+
 				if (this.continueOnFail()) {
 					items.push({ json: this.getInputData(itemIndex)[0].json, error, pairedItem: itemIndex });
 				} else {
