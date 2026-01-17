@@ -1,3 +1,6 @@
+/* eslint-disable @n8n/community-nodes/no-restricted-globals */
+/* eslint-disable @n8n/community-nodes/no-restricted-imports */
+
 import type {
 	IExecuteFunctions,
 	INodeExecutionData,
