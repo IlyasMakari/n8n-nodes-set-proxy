@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-set-proxy",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Set Proxy for HTTP Requests in n8n",
 	"license": "MIT",
 	"homepage": "",
